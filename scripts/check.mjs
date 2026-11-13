@@ -7,5 +7,5 @@ async function walk(directory) {
     else if (path.endsWith('.mjs')) { const result = spawnSync(process.execPath, ['--check', path], { stdio: 'inherit' }); if (result.status) process.exit(result.status); }
   }
 }
-for (const directory of ['src', 'fixtures', 'test']) await walk(directory);
+for (const directory of ['src', 'fixtures', 'test', 'scripts']) await walk(directory);
 console.log('源码语法检查通过');

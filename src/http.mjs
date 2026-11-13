@@ -1,5 +1,28 @@
 import { createServer } from 'node:http';
 
+export class HttpError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+  }
+}
+
+export async function readBody(request, limit = 65536) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > limit) throw new HttpError(413, '请求体过大');
+    chunks.push(chunk);
+  }
+  if (chunks.length === 0) return {};
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  } catch {
+    throw new HttpError(400, '请求体不是有效的 JSON');
+  }
+}
+
 export async function listen(handler, port = 0) {
   const server = createServer(async (request, response) => {
     try {
@@ -11,7 +34,7 @@ export async function listen(handler, port = 0) {
       response.end(Buffer.isBuffer(result.body) || typeof result.body === 'string'
         ? result.body : JSON.stringify(result.body));
     } catch (error) {
-      response.writeHead(400, { 'content-type': 'application/json; charset=utf-8' });
+      response.writeHead(error.status ?? 400, { 'content-type': 'application/json; charset=utf-8' });
       response.end(JSON.stringify({ error: error.message }));
     }
   });

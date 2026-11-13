@@ -1,9 +1,9 @@
 import { chromium } from 'playwright';
-export async function openBrowser(base) {
+export async function openBrowser(base, { headless = true } = {}) {
   const url = new URL(base);
   if (!['127.0.0.1', 'localhost'].includes(url.hostname)) throw new Error('仅允许本地门户');
-  const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined, args: ['--no-sandbox'] });
-  const context = await browser.newContext({ acceptDownloads: true, locale: 'zh-CN' });
+  const browser = await chromium.launch({ headless, executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined, args: ['--no-sandbox'] });
+  const context = await browser.newContext({ acceptDownloads: true, locale: 'zh-CN', viewport: { width: 1280, height: 800 } });
   const page = await context.newPage();
   try {
     await page.goto(base);
